@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup
 from pymongo import MongoClient
 from lxml import etree
 import requests
-# from gevent import monkey
-# monkey.patch_all()
+from gevent import monkey
+monkey.patch_all()
 
 
 class ExtractTools(object):
@@ -15,12 +15,6 @@ class ExtractTools(object):
         xhtml = etree.HTML(html)
 
     def extract_html_by_count(self, url, min_length):
-        '''
-        过滤掉验证码页面
-        :param url:
-        :param min_length:
-        :return:
-        '''
         html = ''
         while len(html) <= min_length:
             html = self.extract_html(url)[0]
@@ -42,17 +36,17 @@ class ExtractTools(object):
 
     def __init__(self):
         # 重复代码  设计问题， 改动则需要修改大量代码， 暂时忍受
-        port = 27017
+        port = 38228
         username = 'zhfr_mongodb_root'
         password = 'zkfr_DUBA@0406mgdb#com'
-        conn = MongoClient(host='192.168.1.179', port=port, username=username,
+        conn = MongoClient(host='122.115.46.176', port=port, username=username,
                            password=password)
         self.statistic_collection = conn.statistic.requests_counts
         self.pattern_create_tm_after = re.compile('(\D|^)(20\d{2})\D(\d{1,2})\D(\d{1,2})\D{1,4}(\d{1,2})\D(\d{1,2})($|\D)')
         self.pattern_create_tm = re.compile('((:|>|\\s)?20[0-9]{2}(-|/|\\.|\\u5e74)\\d{1,2}(-|/|\\.|\\u6708)\\d{1,2}(\\u65e5)?\\s?\\d{1,2}(:|\\u65f6)\\d{2}((:|\\u5206)\\d{2})?|(:|>|\\s)?[0-9]{2}\\u5e74\\d{1,2}\\u6708\\d{1,2}(\\u65e5)?\\s?\\d{1,2}(:|\\u65f6)\\d{2}((:|\\u5206)\\d{2})?)')
         self.bs4_xpath_index_pattern = re.compile('\[(-?\d*)\]')
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36',
+            'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Win64; x64; Trident/4.0)'
         }
         self.pattern_xpath = re.compile('【(.*?)】')
         self.url_pattern = "URL='(.*?)'\">"
@@ -92,12 +86,6 @@ class ExtractTools(object):
             return xhtml.xpath(xpath)
 
     def extract_time_str(self, html, dt):
-        '''
-        在一段 html中  找出时间格式的字符串
-        :param html:
-        :param dt:
-        :return:
-        '''
         default = True if dt else False
         try:
             try:
@@ -126,6 +114,7 @@ class ExtractTools(object):
         return time_stamp
 
     def extract(self, url):
+        print(url)
         try:
             a = Article(url, language='zh')
             a.download()
@@ -153,7 +142,7 @@ class ExtractTools(object):
             d_r = {
                 'title': a.title,
                 'source_from': source_from,
-                'article': [i.strip() for i in a.text.split("\n") if i.strip()],
+                'article': [i.strip() for i in a.text.split('\n') if i.strip()],
                 'html': html,
                 'create_time': int(create_time),
                 'url': after_url
